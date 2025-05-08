@@ -1,6 +1,3 @@
-# sudo modprobe w1-gpio
-# sudo modprobe w1-therm
-
 import glob
 import time
 
