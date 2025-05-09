@@ -3,15 +3,16 @@
 import os
 import glob
 import time
-import RPi.GPIO as GPIO  # Added GPIO library for pin control
+import RPi.GPIO as GPIO  # Import GPIO library
 
-# GPIO Setup - We'll use GPIO pin 17 (physical pin 11) for 3.3V output
-# This is neither pin 1 nor pin 4 (pin 1 is 3.3V power, pin 4 is 5V power)
-OUTPUT_PIN = 17  # Physical pin 11 on Raspberry Pi
+# GPIO setup
+ALERT_PIN = 17  # GPIO17 (physical pin 11) - not pin 1 or 4
+TEMP_THRESHOLD = 100.0  # Temperature threshold in Fahrenheit
 
-# Set up GPIO
-GPIO.setmode(GPIO.BCM)  # Use BCM numbering
-GPIO.setup(OUTPUT_PIN, GPIO.OUT)  # Set pin as output
+# Initialize GPIO
+GPIO.setmode(GPIO.BCM)  # Use BCM numbering scheme
+GPIO.setup(ALERT_PIN, GPIO.OUT)  # Set pin as output
+GPIO.output(ALERT_PIN, GPIO.LOW)  # Start with pin low (0V)
 
 # Check if the sensor directory exists
 base_dir = '/sys/bus/w1/devices/'
@@ -67,26 +68,32 @@ def read_temp():
     return None, None
 
 # Main loop to continuously read temperature
-print("DS18B20 Temperature Sensor Reading")
+print("DS18B20 Temperature Sensor Reading with Alert")
 print(f"Using sensor at: {device_folder}")
-print(f"Outputting HIGH (3.3V) on GPIO {OUTPUT_PIN} (physical pin 11)")
+print(f"Alert will trigger on GPIO{ALERT_PIN} when temperature exceeds {TEMP_THRESHOLD}°F")
 print("Press Ctrl+C to exit")
 
 try:
-    # Set pin HIGH (3.3V)
-    GPIO.output(OUTPUT_PIN, GPIO.HIGH)
-    print(f"GPIO {OUTPUT_PIN} set to HIGH (3.3V)")
-    
     while True:
         celsius, fahrenheit = read_temp()
         if celsius is not None and fahrenheit is not None:
             print(f"Temperature: {celsius:.1f}°C / {fahrenheit:.1f}°F")
+            
+            # Check if temperature is above threshold
+            if fahrenheit > TEMP_THRESHOLD:
+                GPIO.output(ALERT_PIN, GPIO.HIGH)  # Set pin high (3.3V)
+                print(f"ALERT: Temperature above {TEMP_THRESHOLD}°F! GPIO{ALERT_PIN} set HIGH (3.3V)")
+            else:
+                GPIO.output(ALERT_PIN, GPIO.LOW)  # Set pin low (0V)
+                
         else:
             print("Error reading temperature")
+            
         time.sleep(1)
+        
 except KeyboardInterrupt:
     print("\nMeasurement stopped by user")
 finally:
-    # Clean up GPIO on exit
+    # Clean up GPIO settings
     GPIO.cleanup()
-    print("GPIO pins cleaned up")
+    print("GPIO cleaned up")
