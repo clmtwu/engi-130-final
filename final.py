@@ -7,7 +7,7 @@ import RPi.GPIO as GPIO  # Import GPIO library
 
 # GPIO setup
 ALERT_PIN = 17  # GPIO17 (physical pin 11) - not pin 1 or 4
-TEMP_THRESHOLD = 100.0  # Temperature threshold in Fahrenheit
+TEMP_THRESHOLD = 80.0  # Temperature threshold in Fahrenheit
 
 # Initialize GPIO
 GPIO.setmode(GPIO.BCM)  # Use BCM numbering scheme
