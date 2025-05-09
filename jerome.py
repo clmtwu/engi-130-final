@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# pip freeze > requirements.txt
+
 import os
 import glob
 import time
